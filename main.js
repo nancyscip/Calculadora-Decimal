@@ -1,82 +1,105 @@
-const numberButton = document.getElementsByName('number');
-const operationButton = document.getElementsByName('operation');
-const equalButton = document.getElementsByName('equal')[0];
-const deleteButton = document.getElementsByName('delete')[0];
+const botonNumero = document.querySelectorAll('[data-numero]')
+const botonOperador = document.querySelectorAll('[data-operador]')
+const botonIgual = document.querySelector('[data-igual]')
+const botonBorrarTodo = document.querySelector('[data-borrar-todo]')
+const botonBorrar = document.querySelector('[data-borrar]')
+const textoValorSuperior = document.querySelector('[data-valor-superior]')
+const textoValorInferior = document.querySelector('[data-valor-inferior]')
 
-var result = document.getElementById('result');
-var operationActual = '';
-var operationAnterior = '';
-var operation = undefined;
 
-numberButton.forEach(function(button){
-    button.addEventListener('click', function(){
-        addNumber(button.innerText)
+class Calculadora {
+    constructor(textoValorInferior,textoValorSuperior){
+        this.textoValorInferior = textoValorInferior
+        this.textoValorSuperior = textoValorSuperior
+        this.valorInferior = ''
+        this.valorSuperior = ''
+        this.operador = undefined
+    }
+
+    agregarNumero(numero){
+    if(numero === '.' && this.valorInferior.includes('.')) return
+    this.valorInferior = this.valorInferior + numero
+    }
+    imprimirDisplay() {
+        this.textoValorInferior.innerText = this.valorInferior
+        this.textoValorSuperior.innerText = this.valorSuperior
+    }
+    borrar (){
+        this.valorInferior = this.valorInferior.slice(0,-1)
+    }
+    elegirOperacion(operador) {
+        if(this.valorInferior == '') return
+        if(this.valorSuperior != '') {
+            this.realizarCalculo()
+        }
+        this.operador = operador
+        this.valorSuperior = this.valorInferior
+        this.valorInferior = ''
+    }
+    realizarCalculo() {
+        let resultado
+        let conversionValorSuperior = parseFloat(this.valorSuperior)
+        let conversionValorInferior = parseFloat (this.valorInferior)
+        if(isNaN(conversionValorSuperior) || isNaN(conversionValorInferior)) return
+        switch (this.operador) {
+            case '+':
+            resultado = conversionValorSuperior + conversionValorInferior
+            break
+            case '-':
+            resultado = conversionValorSuperior - conversionValorInferior
+            break
+            case '*':
+            resultado = conversionValorSuperior * conversionValorInferior
+            break
+            case '÷':
+            resultado = conversionValorSuperior / conversionValorInferior
+            break
+            default: return
+        }
+        
+        this.valorInferior = resultado
+        this.operador = undefined
+        this.valorSuperior= ''
+    }
+
+    limpiarPantalla() {
+        this.valorInferior = ''
+        this.valorSuperior = ''
+        this.operador = undefined
+
+    }
+}
+
+
+
+const calculadora = new Calculadora (textoValorInferior,textoValorSuperior)
+
+
+
+botonNumero.forEach(boton => {
+    boton.addEventListener('click', () => {
+        calculadora.agregarNumero(boton.innerText)
+        calculadora.imprimirDisplay() 
     })
-});
-
-operationButton.forEach(function(button){
-    button.addEventListener('click', function(){
-        selectOperation(button.innerText);
-    })
-});
-
-equalButton.addEventListener('click', function(){
-    calcular();
-    updateDisplay();
-});
-
-deleteButton.addEventListener('click', function(){
-    clear();
-    updateDisplay();
 })
 
-function selectOperation(op) {
-    if(operationActual === '') return;
-    if(operationAnterior !== ''){
-        calcular();
-    }
-    operation = op.toString();
-    operationAnterior = operationActual;
-    operationActual = '';
-}
+botonBorrar.addEventListener('click',() => {
+    calculadora.borrar()
+    calculadora.imprimirDisplay()
+})
 
-function calcular() {
-    var calculo;
-    const anterior = parseFloat(operationAnterior);
-    const actual = parseFloat(operationActual);
-    if(isNaN(anterior) || isNaN(actual)) return;
-    switch (operation) {
-        case "+":
-            calculo = anterior + actual;
-            break;
-        case "-":
-            calculo = anterior - actual;
-            break;
-        case "*":
-            calculo = anterior * actual;
-            break;
-        case "/":
-            calculo = anterior / actual;
-            break;
-        default:
-            return;
-    }
-    operationActual = calculo;
-    operation = undefined;
-    operationAnterior = '';
-}
+botonOperador.forEach(boton => {
+    boton.addEventListener('click', () => {
+        calculadora.elegirOperacion(boton.innerText)
+        calculadora.imprimirDisplay() 
+    })
+})
+botonIgual.addEventListener('click',() => {
+    calculadora.realizarCalculo()
+    calculadora.imprimirDisplay()
+})
 
-function addNumber(num) {
-    operationActual = operationActual.toString() + num.toString();
-    updateDisplay();
-}
-
-function clear() {
-    operationActual = '';
-    operationAnterior = '';
-    operation = undefined;
-}
-
-function updateDisplay() {
-    result.value = operationActual;
-}
+botonBorrarTodo.addEventListener('click',() => {
+    calculadora.limpiarPantalla()
+    calculadora.imprimirDisplay()
+})
